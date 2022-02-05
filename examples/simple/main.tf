@@ -7,4 +7,7 @@ module "bastion" {
   user_names = [
     "umihico",
   ]
+  policy_arns = [
+    "arn:aws:iam::aws:policy/AdministratorAccess"
+  ]
 }

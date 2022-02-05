@@ -61,17 +61,10 @@ resource "aws_iam_role" "default" {
   max_session_duration = 43200 # maxiumum session duration is 12 hours (43200 seconds)
 }
 
-resource "aws_iam_role_policy" "default" {
-  name = "BastionUserDefaultRole_policy"
-  role = aws_iam_role.default.name
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      "Effect" : "Allow",
-      "Action" : "*",
-      "Resource" : "*",
-    }]
-  })
+resource "aws_iam_role_policy_attachment" "default" {
+  for_each   = toset(var.policy_arns)
+  role       = aws_iam_role.default.name
+  policy_arn = each.key
 }
 
 resource "aws_iam_policy" "default_boundary_policy" {
