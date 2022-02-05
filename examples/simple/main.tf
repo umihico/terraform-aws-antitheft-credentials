@@ -10,4 +10,5 @@ module "bastion" {
   policy_arns = [
     "arn:aws:iam::aws:policy/AdministratorAccess"
   ]
+  suffix = "admin"
 }

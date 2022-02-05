@@ -16,7 +16,7 @@ terraform {
 }
 
 resource "aws_dynamodb_table" "ip_address_table" {
-  name           = "bastion-ip-address-table"
+  name           = "bastion-ip-address-table-${var.suffix}"
   read_capacity  = 1
   write_capacity = 1
   hash_key       = "IpAddress"
@@ -46,8 +46,8 @@ resource "aws_dynamodb_table" "ip_address_table" {
 }
 
 resource "aws_iam_role" "default" {
-  name                 = "BastionUserDefaultRole"
-  permissions_boundary = aws_iam_policy.default_boundary_policy.arn
+  name                 = "BastionUserRole_${var.suffix}"
+  permissions_boundary = aws_iam_policy.boundary_policy.arn
   assume_role_policy = jsonencode({
     "Version" : "2012-10-17"
     "Statement" : [
@@ -67,8 +67,8 @@ resource "aws_iam_role_policy_attachment" "default" {
   policy_arn = each.key
 }
 
-resource "aws_iam_policy" "default_boundary_policy" {
-  name        = "BastionUserDefaultRole_permissions_boundary_policy"
+resource "aws_iam_policy" "boundary_policy" {
+  name        = "BastionUserRole_permissions_boundary_policy_${var.suffix}"
   description = "IP Address Based Boundary Policy"
   policy = jsonencode({
     Version = "2012-10-17"
@@ -92,7 +92,7 @@ resource "aws_iam_policy" "default_boundary_policy" {
 }
 
 resource "aws_iam_role" "condition_changer" {
-  name = "BastionUpdatePolicyRole"
+  name = "BastionUpdatePolicyRole_${var.suffix}"
   assume_role_policy = jsonencode({
     "Version" : "2012-10-17"
     "Statement" : {
@@ -111,7 +111,7 @@ resource "aws_iam_role" "condition_changer" {
 }
 
 resource "aws_iam_role_policy" "condition_changer" {
-  name = "BastionUpdatePolicyRole_policy"
+  name = "BastionUpdatePolicyRole_policy_${var.suffix}"
   role = aws_iam_role.condition_changer.name
   policy = jsonencode({
     Version = "2012-10-17"
@@ -121,7 +121,7 @@ resource "aws_iam_role_policy" "condition_changer" {
           "iam:CreatePolicyVersion",
         ]
         Effect   = "Allow"
-        Resource = aws_iam_policy.default_boundary_policy.arn
+        Resource = aws_iam_policy.boundary_policy.arn
       },
       {
         Action = [

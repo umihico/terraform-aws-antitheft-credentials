@@ -7,6 +7,7 @@ set -euo pipefail
 BASTION_PROFILE="bastion"
 MFA_NAME="umihico"
 DEFAULT_AWS_ACCOUNT_ID="123456789012"
+SUFFIX="admin"
 ################################################################################
 ###                        END OF CONFIGURATION AREA                         ###
 ################################################################################
@@ -18,10 +19,10 @@ BASTION_AWS_ACCOUNT_INFO=$(aws sts get-caller-identity --profile $BASTION_PROFIL
 BASTION_AWS_ACCOUNT_ID=$(echo $BASTION_AWS_ACCOUNT_INFO | jq -r ".Account")
 BASTION_USERNAME=$(echo $BASTION_AWS_ACCOUNT_INFO | jq -r '.Arn | split("/")[1]')
 MFA_SERIAL_NUMBER="arn:aws:iam::${BASTION_AWS_ACCOUNT_ID}:mfa/${MFA_NAME}"
-BOUNDARY_POLICY_ARN="arn:aws:iam::${DEFAULT_AWS_ACCOUNT_ID}:policy/BastionUserDefaultRole_permissions_boundary_policy"
-POLICY_CHANGER_ROLE_ARN="arn:aws:iam::${DEFAULT_AWS_ACCOUNT_ID}:role/BastionUpdatePolicyRole"
+BOUNDARY_POLICY_ARN="arn:aws:iam::${DEFAULT_AWS_ACCOUNT_ID}:policy/BastionUserRole_permissions_boundary_policy_${SUFFIX}"
+POLICY_CHANGER_ROLE_ARN="arn:aws:iam::${DEFAULT_AWS_ACCOUNT_ID}:role/BastionUpdatePolicyRole_${SUFFIX}"
 ROLE_SESSION_NAME="${BASTION_USERNAME}-$(command date +%s)"
-DYNAMODB_TABLE_NAME="bastion-ip-address-table"
+DYNAMODB_TABLE_NAME="bastion-ip-address-table-${SUFFIX}"
 echo "Enter MFA code for ${MFA_SERIAL_NUMBER}:"
 read TOKEN_CODE
 

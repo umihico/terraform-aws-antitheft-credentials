@@ -3,7 +3,7 @@ output "aws_iam_role_default" {
 }
 
 output "aws_iam_permissions_boundary_policy" {
-  value = aws_iam_policy.default_boundary_policy
+  value = aws_iam_policy.boundary_policy
 }
 
 output "aws_iam_role_condition_changer" {

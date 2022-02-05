@@ -12,3 +12,9 @@ variable "policy_arns" {
   description = "Policy ARN attaching to the role users assume"
   type        = list(string)
 }
+
+variable "suffix" {
+  description = "suffix for all resources to avoid name collisions"
+  default     = "default"
+  type        = string
+}
