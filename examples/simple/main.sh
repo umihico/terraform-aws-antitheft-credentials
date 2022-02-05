@@ -18,6 +18,7 @@ BASTION_AWS_ACCOUNT_INFO=$(aws sts get-caller-identity --profile $BASTION_PROFIL
 BASTION_AWS_ACCOUNT_ID=$(echo $BASTION_AWS_ACCOUNT_INFO | jq -r ".Account")
 BASTION_USERNAME=$(echo $BASTION_AWS_ACCOUNT_INFO | jq -r '.Arn | split("/")[1]')
 MFA_SERIAL_NUMBER="arn:aws:iam::${BASTION_AWS_ACCOUNT_ID}:mfa/${MFA_NAME}"
+BOUNDARY_POLICY_ARN="arn:aws:iam::${DEFAULT_AWS_ACCOUNT_ID}:policy/BastionUserDefaultRole_permissions_boundary_policy"
 POLICY_CHANGER_ROLE_ARN="arn:aws:iam::${DEFAULT_AWS_ACCOUNT_ID}:role/BastionUpdatePolicyRole"
 ROLE_SESSION_NAME="${BASTION_USERNAME}-$(command date +%s)"
 DYNAMODB_TABLE_NAME="bastion-ip-address-table"
@@ -68,20 +69,17 @@ POLICY=$(cat <<-END
     {
       "Effect": "Allow",
       "Action": "*",
-      "Resource": "*",
-      "Condition": {
-        "Bool": {"aws:ViaAWSService": "false"},
-        "IpAddress": {
-          "aws:SourceIp": $ALLOWED_IPS
-        }
-      }
+      "Resource": "*"
     },
     {
-      "Effect": "Allow",
-      "Action": "*",
-      "Resource": "*",
-      "Condition": {
-        "Bool": {"aws:ViaAWSService": "true"}
+      "Effect" : "Deny",
+      "Action" : "*",
+      "Resource" : "*",
+      "Condition" : {
+        "NotIpAddress" : {
+          "aws:SourceIp" : $ALLOWED_IPS
+        },
+        "Bool" : { "aws:ViaAWSService" : false }
       }
     }
   ]
@@ -89,9 +87,9 @@ POLICY=$(cat <<-END
 END
 )
 
-aws iam put-role-policy \
-  --role-name BastionUserDefaultRole \
-  --policy-name BastionUserDefaultRole_policy \
+aws iam create-policy-version \
+  --policy-arn $BOUNDARY_POLICY_ARN \
+  --set-as-default \
   --policy-document $(echo $POLICY | jq -r 'tostring')
 
 echo "Your IP '$MY_IP' is allowed."

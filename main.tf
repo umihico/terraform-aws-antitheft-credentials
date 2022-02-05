@@ -46,7 +46,8 @@ resource "aws_dynamodb_table" "ip_address_table" {
 }
 
 resource "aws_iam_role" "default" {
-  name = "BastionUserDefaultRole"
+  name                 = "BastionUserDefaultRole"
+  permissions_boundary = aws_iam_policy.default_boundary_policy.arn
   assume_role_policy = jsonencode({
     "Version" : "2012-10-17"
     "Statement" : [
@@ -64,9 +65,31 @@ resource "aws_iam_role_policy" "default" {
   name = "BastionUserDefaultRole_policy"
   role = aws_iam_role.default.name
   policy = jsonencode({
-    # will be overwritten
-    Version   = "2012-10-17"
-    Statement = []
+    Version = "2012-10-17"
+    Statement = [{
+      "Effect" : "Allow",
+      "Action" : "*",
+      "Resource" : "*",
+    }]
+  })
+}
+
+resource "aws_iam_policy" "default_boundary_policy" {
+  name        = "BastionUserDefaultRole_permissions_boundary_policy"
+  description = "IP Address Based Boundary Policy"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    "Statement" : [{
+      "Effect" : "Deny",
+      "Action" : "*",
+      "Resource" : "*",
+      "Condition" : {
+        "NotIpAddress" : {
+          "aws:SourceIp" : []
+        },
+        "Bool" : { "aws:ViaAWSService" : false }
+      }
+    }]
   })
   lifecycle {
     ignore_changes = [
@@ -102,10 +125,10 @@ resource "aws_iam_role_policy" "condition_changer" {
     Statement = [
       {
         Action = [
-          "iam:PutRolePolicy",
+          "iam:CreatePolicyVersion",
         ]
         Effect   = "Allow"
-        Resource = aws_iam_role.default.arn
+        Resource = aws_iam_policy.default_boundary_policy.arn
       },
       {
         Action = [

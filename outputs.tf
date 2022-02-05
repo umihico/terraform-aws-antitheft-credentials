@@ -2,8 +2,8 @@ output "aws_iam_role_default" {
   value = aws_iam_role.default
 }
 
-output "aws_iam_role_policy_default" {
-  value = aws_iam_role_policy.default
+output "aws_iam_permissions_boundary_policy" {
+  value = aws_iam_policy.default_boundary_policy
 }
 
 output "aws_iam_role_condition_changer" {
