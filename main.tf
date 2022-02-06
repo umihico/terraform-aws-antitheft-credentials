@@ -55,6 +55,11 @@ resource "aws_iam_role" "default" {
         "Action" : "sts:AssumeRole"
         "Effect" : "Allow"
         "Principal" : { "AWS" : local.assume_role_policy_user_arns }
+        "Condition" : {
+          "Bool" : {
+            "aws:MultiFactorAuthPresent" : true
+          }
+        }
       },
     ]
   })
@@ -101,7 +106,7 @@ resource "aws_iam_role" "condition_changer" {
       "Principal" : { "AWS" : local.assume_role_policy_user_arns }
       "Condition" : {
         "NumericLessThan" : { "aws:MultiFactorAuthAge" : 10 }
-        "BoolIfExists" : {
+        "Bool" : {
           "aws:MultiFactorAuthPresent" : true
         }
       }
